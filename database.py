@@ -11,11 +11,11 @@ class Database:
                 CREATE TABLE IF NOT EXISTS reviews(
                     id INTEGER PRIMARY KEY AUTOINCREMENT,
                     name TEXT NOT NULL,
-                    phone_number INTEGER NOT NULL,
+                    phone_number TEXT NOT NULL,
                     product INTEGER NOT NULL,
                     rating INTEGER NOT NULL,
                     comment TEXT,
-                    data DATE NOT NULL
+                    date DATE NOT NULL
                 )
             """)
             conn.commit()
@@ -24,10 +24,11 @@ class Database:
     def save_review(self, data: dict):
         with sqlite3.connect("db.sqlite3") as conn:
             conn.execute("""
-                INSERT INTO reviews (name, phone_number, product, rating, comment, data)
+                INSERT INTO reviews (name, phone_number, food_rating, cleanliness_rating, extra_comments, process_data)
                 VALUES (?, ?, ?, ?, ?, ?)
-                """, (data["name"], data["phone_number"], data["product"], data["rating"],
-                      data["comment"], data["data"]))
+                """,
+                (data["name"], data["phone_number"], data["food_rating"], data["cleanliness_rating"],
+                 data["extra_comments"], data["process_data"]))
 
 
 

@@ -88,5 +88,6 @@ async def process_clear(message: types.Message, state: FSMContext):
     await state.update_data(process_data=message.text)
     await message.answer("Спасибо за отзыв")
     data = await state.get_data()
+    print(data)
     database.save_review(data)
     await state.clear()
