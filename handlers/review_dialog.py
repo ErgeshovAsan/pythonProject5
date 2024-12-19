@@ -14,6 +14,7 @@ class RestourantReview(StatesGroup):
     cleanliness_rating = State()
     extra_comments = State()
     process_data = State()
+    confirm = State()
 
 def get_rating_keyboard():
     return InlineKeyboardMarkup(
@@ -27,6 +28,17 @@ def get_rating_keyboard():
             ]
         ]
     )
+
+def get_confirm_keyboard():
+    return InlineKeyboardMarkup(
+        inline_keyboard=[
+            [
+                InlineKeyboardButton(text="Yes", callback_data="yes"),
+                InlineKeyboardButton(text="No", callback_data="no")
+            ]
+        ]
+    )
+
 
 @review_router.callback_query(F.data == "review")
 async def feedback_start(callback: types.CallbackQuery, state: FSMContext):
@@ -84,10 +96,20 @@ async def process_data(message: types.Message, state: FSMContext):
     await state.set_state(RestourantReview.process_data)
 
 @review_router.message(RestourantReview.process_data)
-async def process_clear(message: types.Message, state: FSMContext):
+async def process_confirm(message: types.Message, state: FSMContext):
     await state.update_data(process_data=message.text)
-    await message.answer("Спасибо за отзыв")
-    data = await state.get_data()
-    print(data)
-    database.save_review(data)
-    await state.clear()
+    await message.answer("Подвердить сохранение?", reply_markup=get_confirm_keyboard())
+    await state.set_state(RestourantReview.confirm)
+
+@review_router.callback_query(RestourantReview.confirm)
+async def process_clear(callback: types.CallbackQuery, state: FSMContext):
+    confirm = callback.data
+    if confirm == "no":
+        await callback.message.answer("Отзыв не сохранен")
+        await state.clear()
+    else:
+        await callback.message.answer("Спасибо за отзыв")
+        data = await state.get_data()
+        print(data)
+        database.save_review(data)
+        await state.clear()

@@ -12,12 +12,21 @@ class Database:
                     id INTEGER PRIMARY KEY AUTOINCREMENT,
                     name TEXT NOT NULL,
                     phone_number TEXT NOT NULL,
-                    product INTEGER NOT NULL,
-                    rating INTEGER NOT NULL,
-                    comment TEXT,
-                    date DATE NOT NULL
+                    food_rating INTEGER NOT NULL,
+                    cleanliness_rating INTEGER NOT NULL,
+                    extra_comments TEXT,
+                    process_data DATE NOT NULL
                 )
             """)
+            conn.execute("""
+                            CREATE TABLE IF NOT EXISTS dish(
+                                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                                name TEXT NOT NULL,
+                                price INTEGER NOT NULL,
+                                description TEXT NOT NULL,
+                                category TEXT
+                            )
+                        """)
             conn.commit()
 
 
@@ -29,6 +38,14 @@ class Database:
                 """,
                 (data["name"], data["phone_number"], data["food_rating"], data["cleanliness_rating"],
                  data["extra_comments"], data["process_data"]))
+
+    def save_dish(self, data: dict):
+        with sqlite3.connect("db.sqlite3") as conn:
+            conn.execute("""
+                INSERT INTO dish (name, price, description, category)
+                VALUES (?, ?, ?, ?)
+                """,
+                (data["name"], data["price"], data["description"], data["category"]))
 
 
 
