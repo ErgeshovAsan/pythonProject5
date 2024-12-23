@@ -19,7 +19,7 @@ class Database:
                 )
             """)
             conn.execute("""
-                            CREATE TABLE IF NOT EXISTS dish(
+                            CREATE TABLE IF NOT EXISTS dishes(
                                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                                 name TEXT NOT NULL,
                                 price INTEGER NOT NULL,
@@ -42,10 +42,18 @@ class Database:
     def save_dish(self, data: dict):
         with sqlite3.connect("db.sqlite3") as conn:
             conn.execute("""
-                INSERT INTO dish (name, price, description, category)
+                INSERT INTO dishes (name, price, description, category)
                 VALUES (?, ?, ?, ?)
                 """,
                 (data["name"], data["price"], data["description"], data["category"]))
+
+    def get_all_dishes(self):
+        with sqlite3.connect(self.path) as conn:
+            result = conn.execute("SELECT name, price, description, category FROM dishes ORDER BY price")
+            result.row_factory = sqlite3.Row
+            data = result.fetchall()
+
+            return [dict(row) for row in data]
 
 
 
