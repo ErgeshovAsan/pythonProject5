@@ -1,5 +1,5 @@
 from aiogram import Router, types, F
-from aiogram.fsm.state import StatesGroup, State
+from aiogram.fsm.state import StatesGroup, State, default_state
 from aiogram.fsm.context import FSMContext
 from bot_config import database
 
@@ -11,10 +11,11 @@ dish_router.callback_query.filter(F.from_user.id == 1377166423)
 class MenuDishes(StatesGroup):
     name = State()
     price = State()
+    cover = State()
     description = State()
     category = State()
 
-@dish_router.callback_query(F.data == "dish")
+@dish_router.callback_query(F.data == "dish", default_state)
 async def feedback_start(callback: types.CallbackQuery, state: FSMContext):
     await callback.message.answer("Название блюда?")
     await state.set_state(MenuDishes.name)
@@ -28,6 +29,15 @@ async def process_price(message: types.Message, state: FSMContext):
 @dish_router.message(MenuDishes.price)
 async def process_description(message: types.Message, state: FSMContext):
     await state.update_data(price=message.text)
+    await message.answer("Загрузите фото обложку")
+    await state.set_state(MenuDishes.cover)
+
+@dish_router.message(MenuDishes.cover, F.photo)
+async def process_cover(message: types.Message, state: FSMContext):
+    covers = message.photo
+    biggest_image = covers[-1]
+    biggest_image_id = biggest_image.file_id
+    await state.update_data(cover=biggest_image_id)
     await message.answer("Описание?")
     await state.set_state(MenuDishes.description)
 

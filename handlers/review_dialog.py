@@ -1,6 +1,6 @@
 from aiogram import Router, types, F
 from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup
-from aiogram.fsm.state import StatesGroup, State
+from aiogram.fsm.state import StatesGroup, State, default_state
 from aiogram.fsm.context import FSMContext
 from bot_config import database
 
@@ -13,7 +13,7 @@ class RestourantReview(StatesGroup):
     food_rating = State()
     cleanliness_rating = State()
     extra_comments = State()
-    process_data = State()
+    date = State()
     confirm = State()
 
 def get_rating_keyboard():
@@ -40,7 +40,7 @@ def get_confirm_keyboard():
     )
 
 
-@review_router.callback_query(F.data == "review")
+@review_router.callback_query(F.data == "review", default_state)
 async def feedback_start(callback: types.CallbackQuery, state: FSMContext):
     user_id = callback.from_user.id
     if user_id in reviewed_users:
@@ -93,11 +93,11 @@ async def process_extra_comments(callback: types.CallbackQuery, state: FSMContex
 async def process_data(message: types.Message, state: FSMContext):
     await state.update_data(extra_comments=message.text)
     await message.answer("Дата посещения?")
-    await state.set_state(RestourantReview.process_data)
+    await state.set_state(RestourantReview.date)
 
-@review_router.message(RestourantReview.process_data)
+@review_router.message(RestourantReview.date)
 async def process_confirm(message: types.Message, state: FSMContext):
-    await state.update_data(process_data=message.text)
+    await state.update_data(date=message.text)
     await message.answer("Подвердить сохранение?", reply_markup=get_confirm_keyboard())
     await state.set_state(RestourantReview.confirm)
 
